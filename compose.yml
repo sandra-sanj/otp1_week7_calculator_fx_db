@@ -1,0 +1,34 @@
+services:
+
+  db:
+    container_name: mariadb
+    image: mariadb:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: Test12
+      MYSQL_DATABASE: calc_data
+    ports:
+      - "13306:3306"
+    volumes:
+      - db-data:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD", "mariadb-admin", "ping", "-h", "localhost", "-u", "root", "-pTest12" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    container_name: calculator_fx
+    image: sandrajuu/calculator_fx_db:latest
+    environment:
+      DB_URL: jdbc:mariadb://db:3306/calc_data
+      DB_USER: root
+      DB_PASSWORD: Test12
+      DISPLAY: host.docker.internal:0
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db-data:
